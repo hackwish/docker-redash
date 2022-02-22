@@ -1,0 +1,3 @@
+pyodbc==4.0.27
+kombu>=4.6.10
+celery==4.4.6

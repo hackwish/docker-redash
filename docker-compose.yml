@@ -1,0 +1,102 @@
+version: '2.2'
+
+x-redash-service: &redash-service
+  # image: redash/redash:8.0.0.b32245
+  # image: redash/redash:10.1.0.b50633
+  image: redash-8
+  # image: redash-10
+  # build:
+  #   context: ./
+  #   dockerfile: Dockerfile
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy      
+  env_file: .env
+  restart: always
+
+services:
+  server:
+    <<: *redash-service
+    # container_name: redash-server
+    command: server
+    ports:
+      - "5000:5000"
+    environment:
+      REDASH_WEB_WORKERS: 4
+    networks:
+      - redash
+  scheduler:
+    <<: *redash-service
+    # container_name: redash-scheduler
+    command: scheduler
+    environment:
+      QUEUES: "celery"
+      WORKERS_COUNT: 1
+    networks:
+      - redash
+  scheduled_worker:
+    <<: *redash-service
+    # container_name: redash-worker
+    command: worker
+    environment:
+      QUEUES: "scheduled_queries,schemas"
+      WORKERS_COUNT: 1
+    networks:
+      - redash
+  adhoc_worker:
+    <<: *redash-service
+    # container_name: redash-adhoc-worker
+    command: worker
+    environment:
+      QUEUES: "queries"
+      WORKERS_COUNT: 2
+    networks:
+      - redash
+  redis:
+    image: redis:5.0-alpine
+    restart: always
+    networks:
+      - redash
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+  postgres:
+    image: postgres:9.6-alpine
+    env_file: .env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - redash
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  nginx:
+    image: redash/nginx:latest
+    ports:
+      - "8090:80"
+    depends_on:
+      - server
+    links:
+      - server:redash
+    networks:
+      - redash
+    restart: always
+  email:
+    image: djfarrelly/maildev
+    ports:
+      - "1080:80"
+    networks:
+      - redash
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+
+networks:
+    redash:
