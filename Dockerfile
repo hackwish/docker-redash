@@ -1,5 +1,5 @@
-FROM redash/redash:8.0.2.b37747
-# FROM redash/redash:10.1.0.b50633
+# FROM redash/redash:8.0.2.b37747
+FROM redash/redash:10.1.0.b50633
 
 USER root
 
