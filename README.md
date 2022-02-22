@@ -3,8 +3,13 @@
 - Docker
 - Docker Compose
 - Python 3
-- Secrets python module
+- Secrets python module (optativo)
 - pwgen (optativo)
+
+## Additional Drivers
+- Dremio
+
+## Docker Lab
 
 ## Configurar .env
 Usar de base o copiar env_template
@@ -18,13 +23,15 @@ Usar de base o copiar env_template
 
 Crear variables / claves REDASH_SECRET_KEY y REDASH_COOKIE_SECRET
 ``python3 -c 'import secrets; print(secrets.token_hex())'``
+
 ``pwgen -1s 32``
+
+``openssl rand -base64 32``
 
 - Crear u obtener password de Postgres
 - Obtener string de conexión Postgres
 - Obtener string de conexión Redis
 
-## Docker Lab
 ### Construir imagen Docker
 ``docker build -t redash .``
 
